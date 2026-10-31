@@ -10,7 +10,7 @@ RUN npm config set registry https://registry.npmmirror.com
 
 # 先复制依赖文件，利用缓存
 COPY vue-code/package.json vue-code/package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,id=s/cf9f1215-bc47-4d37-a672-5d0943e03ca3-/root/.npm,target=/root/.npm npm ci
 
 # 复制前端源码并构建
 COPY vue-code/ ./
@@ -34,10 +34,10 @@ COPY --from=frontend-build /app/vue-code/../src/main/resources/static src/main/r
 COPY vue-code/src/data/ vue-code/src/data/
 
 # 构建 JAR并执行测试
-RUN --mount=type=cache,target=/root/.m2/repository ./mvnw clean package
+RUN --mount=type=cache,id=s/cf9f1215-bc47-4d37-a672-5d0943e03ca3-/root/.m2/repository,target=/root/.m2/repository ./mvnw clean package
 
 # 预置 Playwright Chromium，保证容器内的 Cookie 与 Token 维护功能可用
-RUN --mount=type=cache,target=/root/.m2/repository ./mvnw dependency:build-classpath -Dmdep.outputFile=target/classpath.txt \
+RUN --mount=type=cache,id=s/cf9f1215-bc47-4d37-a672-5d0943e03ca3-/root/.m2/repository,target=/root/.m2/repository ./mvnw dependency:build-classpath -Dmdep.outputFile=target/classpath.txt \
     && PLAYWRIGHT_BROWSERS_PATH=/ms-playwright java -cp "target/classes:$(cat target/classpath.txt)" com.microsoft.playwright.CLI install chromium
 
 # 阶段3: 运行时镜像
